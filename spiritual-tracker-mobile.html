@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spiritual Practices Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding-bottom: 70px;
+        }
+
+        /* Bottom Navigation */
+        .sidebar {
+            width: 100%;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            z-index: 1000;
+            background: white;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-header {
+            display: none;
+        }
+
+        .module-list {
+            display: flex;
+            padding: 0;
+        }
+
+        .module-item {
+            flex: 1;
+            padding: 12px 10px;
+            cursor: pointer;
+            border-top: 4px solid transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.75em;
+            text-align: center;
+        }
+
+        .module-item.active {
+            background: #f0f4ff;
+            border-top-color: #667eea;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .module-icon {
+            font-size: 1.5em;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 10px;
+            width: 100%;
+        }
+
+        .content-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .module-content {
+            display: none;
+        }
+
+        .module-content.active {
+            display: block;
+        }
+
+        /* Header */
+        .content-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 15px;
+            text-align: center;
+        }
+
+        .content-header h1 {
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+
+        /* Controls */
+        .controls-bar {
+            padding: 15px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .controls-left, .controls-center {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .month-controls {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .month-controls button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .current-month {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .data-btn {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .today-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        /* Streaks */
+        .streaks-container {
+            padding: 15px;
+            background: #f8f9fa;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .streak-card {
+            background: white;
+            padding: 15px 10px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            position: relative;
+        }
+
+        .streak-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .streak-icon {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .streak-title {
+            font-size: 0.8em;
+            color: #718096;
+            margin-bottom: 5px;
+        }
+
+        .streak-number {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 2px;
+        }
+
+        .streak-label {
+            font-size: 0.7em;
+            color: #a0aec0;
+        }
+
+        /* Calendar */
+        .calendar-container {
+            padding: 10px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+            margin-top: 10px;
+        }
+
+        .day-header {
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.65em;
+            color: #718096;
+            padding: 4px 0;
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 3px 2px;
+            font-size: 0.65em;
+            position: relative;
+            min-height: 42px;
+            overflow: hidden;
+        }
+
+        .day-cell.today {
+            background: #10b981;
+            color: white;
+            border-color: #059669;
+        }
+
+        .day-cell.other-month {
+            opacity: 0.3;
+        }
+
+        .day-header-info {
+            width: 100%;
+            text-align: center;
+        }
+
+        .day-number {
+            font-weight: 600;
+            font-size: 1em;
+            margin-bottom: 1px;
+        }
+
+        .day-of-week {
+            display: none;
+        }
+
+        .practices-list-compact {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+            justify-content: center;
+            margin-top: 2px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .practice-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #667eea;
+            flex-shrink: 0;
+        }
+
+        .practice-item-compact {
+            display: none;
+        }
+
+        .practice-name-compact {
+            display: none;
+        }
+
+        /* Goals */
+        .goals-header-bar {
+            padding: 15px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .week-selector {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .week-selector button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .week-display {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.85em;
+            text-align: center;
+            flex: 1;
+        }
+
+        .edit-goals-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            font-size: 0.95em;
+        }
+
+        .goals-container {
+            padding: 15px;
+        }
+
+        .goals-section {
+            margin-bottom: 25px;
+        }
+
+        .goals-section h2 {
+            font-size: 1.1em;
+            color: #2d3748;
+            margin-bottom: 12px;
+        }
+
+        .goal-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 2px solid #e9ecef;
+            margin-bottom: 10px;
+        }
+
+        .goal-card.completed {
+            background: #f0fdf4;
+            border-color: #10b981;
+        }
+
+        .goal-info {
+            margin-bottom: 10px;
+        }
+
+        .goal-title {
+            font-size: 1em;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .goal-description {
+            font-size: 0.85em;
+            color: #718096;
+        }
+
+        .goal-progress {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .goal-status {
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-weight: 600;
+            font-size: 0.8em;
+        }
+
+        .goal-status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .goal-status.success {
+            background: #d1f4e0;
+            color: #0f5132;
+        }
+
+        .goal-visual-check {
+            width: 28px;
+            height: 28px;
+            border: 3px solid #cbd5e0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .goal-visual-check.checked {
+            background: #10b981;
+            border-color: #10b981;
+        }
+
+        .goal-visual-check.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: flex-start;
+            padding: 15px 10px 80px 10px;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            margin-bottom: 15px;
+        }
+
+        .modal-header h2 {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .modal-header p {
+            font-size: 0.9em;
+            color: #718096;
+        }
+
+        .practices-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .practice-option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 18px 10px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .practice-option.selected {
+            background: #f0f4ff;
+            border-color: #667eea;
+        }
+
+        .practice-icon-large {
+            font-size: 2.2em;
+            margin-bottom: 6px;
+        }
+
+        .practice-name-large {
+            font-size: 0.85em;
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .modal-footer {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .btn-save {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-cancel {
+            background: #e9ecef;
+            color: #4a5568;
+        }
+
+        #importFile {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Modules</h2>
+        </div>
+        <div class="module-list">
+            <div class="module-item active" data-module="calendar">
+                <span class="module-icon">📅</span>
+                <span>Calendar</span>
+            </div>
+            <div class="module-item" data-module="goals">
+                <span class="module-icon">🎯</span>
+                <span>Goals</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="content-container">
+            <!-- Calendar Module -->
+            <div class="module-content active" id="calendar-module">
+                <div class="content-header">
+                    <h1>📅 Calendar</h1>
+                </div>
+
+                <!-- Controls Bar -->
+                <div class="controls-bar">
+                    <div class="controls-left">
+                        <div class="month-controls">
+                            <button onclick="changeMonth(-1)">◀ Previous</button>
+                            <span class="current-month" id="currentMonth"></span>
+                            <button onclick="changeMonth(1)">Next ▶</button>
+                        </div>
+                    </div>
+                    
+                    <div class="controls-center">
+                        <button class="data-btn" onclick="exportData()">
+                            <span>📤</span>
+                            <span>Export</span>
+                        </button>
+                        <button class="data-btn" onclick="document.getElementById('importFile').click()">
+                            <span>📥</span>
+                            <span>Import</span>
+                        </button>
+                        <input type="file" id="importFile" accept=".json" onchange="importData(event)">
+                    </div>
+                    
+                    <button class="today-btn" onclick="goToToday()">Today</button>
+                </div>
+
+                <!-- Streaks -->
+                <div class="streaks-container">
+                    <div class="streak-card morning">
+                        <div class="streak-icon">🌅</div>
+                        <div class="streak-title">I AM Morning</div>
+                        <div class="streak-number" id="streak-morning">0</div>
+                        <div class="streak-label">day streak</div>
+                    </div>
+
+                    <div class="streak-card night">
+                        <div class="streak-icon">🌙</div>
+                        <div class="streak-title">I AM Night</div>
+                        <div class="streak-number" id="streak-night">0</div>
+                        <div class="streak-label">day streak</div>
+                    </div>
+
+                    <div class="streak-card both-iam">
+                        <div class="streak-icon">⭐</div>
+                        <div class="streak-title">Both I AM</div>
+                        <div class="streak-number" id="streak-both-iam">0</div>
+                        <div class="streak-label">day streak</div>
+                    </div>
+
+                    <div class="streak-card zikr">
+                        <div class="streak-icon">📿</div>
+                        <div class="streak-title">Zikr</div>
+                        <div class="streak-number" id="streak-zikr">0</div>
+                        <div class="streak-label">day streak</div>
+                    </div>
+
+                    <div class="streak-card breath">
+                        <div class="streak-icon">🌬️</div>
+                        <div class="streak-title">Observe Breath</div>
+                        <div class="streak-number" id="streak-breath">0</div>
+                        <div class="streak-label">day streak</div>
+                    </div>
+
+                    <div class="streak-card salkh">
+                        <div class="streak-icon">🕊️</div>
+                        <div class="streak-title">سلخ</div>
+                        <div class="streak-number" id="streak-salkh">0</div>
+                        <div class="streak-label">day streak</div>
+                    </div>
+
+                    <div class="streak-card juluus">
+                        <div class="streak-icon">🌄</div>
+                        <div class="streak-title">جلوس الصبح</div>
+                        <div class="streak-number" id="streak-juluus">0</div>
+                        <div class="streak-label">day streak</div>
+                    </div>
+
+                    <div class="streak-card daftar">
+                        <div class="streak-icon">📔</div>
+                        <div class="streak-title">دفتر انجازات</div>
+                        <div class="streak-number" id="streak-daftar">0</div>
+                        <div class="streak-label">day streak</div>
+                    </div>
+
+                    <div class="streak-card workout">
+                        <div class="streak-icon">💪</div>
+                        <div class="streak-title">Workout</div>
+                        <div class="streak-number" id="streak-workout">0</div>
+                        <div class="streak-label">day streak</div>
+                    </div>
+
+                    <div class="streak-card wai">
+                        <div class="streak-icon">🧘</div>
+                        <div class="streak-title">جلسة وعي</div>
+                        <div class="streak-number" id="streak-wai">0</div>
+                        <div class="streak-label">day streak</div>
+                    </div>
+                </div>
+
+                <div class="calendar-container">
+                    <div class="calendar-grid" id="calendar"></div>
+                </div>
+            </div>
+
+            <!-- Goals Module -->
+            <div class="module-content" id="goals-module">
+                <div class="content-header">
+                    <h1>🎯 Goals</h1>
+                </div>
+
+                <div class="goals-header-bar">
+                    <div class="week-selector">
+                        <button onclick="changeWeek(-1)">◀</button>
+                        <div class="week-display" id="weekDisplay"></div>
+                        <button onclick="changeWeek(1)">▶</button>
+                    </div>
+                    <button class="edit-goals-btn" onclick="openGoalsEditor()">⚙️ Edit Goals</button>
+                </div>
+
+                <div class="goals-container">
+                    <!-- Practice Goals -->
+                    <div class="goals-section">
+                        <h2>Weekly Practice Goals</h2>
+                        
+                        <div class="goal-card" id="goal-both-iam">
+                            <div class="goal-info">
+                                <div class="goal-title">Both I AM Meditations</div>
+                                <div class="goal-description" id="desc-both-iam">0/3 days this week</div>
+                            </div>
+                            <div class="goal-progress">
+                                <div class="goal-status pending" id="status-both-iam">0/3</div>
+                            </div>
+                        </div>
+
+                        <div class="goal-card" id="goal-juluus">
+                            <div class="goal-info">
+                                <div class="goal-title">جلوس الصبح</div>
+                                <div class="goal-description" id="desc-juluus">0/2 days this week</div>
+                            </div>
+                            <div class="goal-progress">
+                                <div class="goal-status pending" id="status-juluus">0/2</div>
+                            </div>
+                        </div>
+
+                        <div class="goal-card" id="goal-daftar">
+                            <div class="goal-info">
+                                <div class="goal-title">دفتر الانجازات</div>
+                                <div class="goal-description" id="desc-daftar">0 this week - Target: 3</div>
+                            </div>
+                            <div class="goal-progress">
+                                <div class="goal-status pending" id="status-daftar">0/3</div>
+                            </div>
+                        </div>
+
+                        <div class="goal-card" id="goal-workout">
+                            <div class="goal-info">
+                                <div class="goal-title">Workout</div>
+                                <div class="goal-description" id="desc-workout">0 this week - Target: 3</div>
+                            </div>
+                            <div class="goal-progress">
+                                <div class="goal-status pending" id="status-workout">0/3</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Business Goals -->
+                    <div class="goals-section">
+                        <h2>Business Goals</h2>
+                        <div id="businessGoalsContainer">
+                            <!-- User-added goals will appear here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Practice Selection Modal -->
+    <div class="modal" id="practiceModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Select Practices</h2>
+                <p id="modalDate"></p>
+            </div>
+            
+            <div class="practices-grid">
+                <div class="practice-option" data-practice="morning" onclick="togglePractice('morning')">
+                    <div class="practice-icon-large">🌅</div>
+                    <div class="practice-name-large">I AM Morning</div>
+                </div>
+                
+                <div class="practice-option" data-practice="night" onclick="togglePractice('night')">
+                    <div class="practice-icon-large">🌙</div>
+                    <div class="practice-name-large">I AM Night</div>
+                </div>
+                
+                <div class="practice-option" data-practice="zikr" onclick="togglePractice('zikr')">
+                    <div class="practice-icon-large">📿</div>
+                    <div class="practice-name-large">Zikr</div>
+                </div>
+                
+                <div class="practice-option" data-practice="breath" onclick="togglePractice('breath')">
+                    <div class="practice-icon-large">🌬️</div>
+                    <div class="practice-name-large">Observing the Breath</div>
+                </div>
+                
+                <div class="practice-option" data-practice="salkh" onclick="togglePractice('salkh')">
+                    <div class="practice-icon-large">🕊️</div>
+                    <div class="practice-name-large">سلخ</div>
+                </div>
+                
+                <div class="practice-option" data-practice="juluus" onclick="togglePractice('juluus')">
+                    <div class="practice-icon-large">🌄</div>
+                    <div class="practice-name-large">جلوس الصبح</div>
+                </div>
+                
+                <div class="practice-option" data-practice="daftar" onclick="togglePractice('daftar')">
+                    <div class="practice-icon-large">📔</div>
+                    <div class="practice-name-large">دفتر الانجازات</div>
+                </div>
+                
+                <div class="practice-option" data-practice="workout" onclick="togglePractice('workout')">
+                    <div class="practice-icon-large">💪</div>
+                    <div class="practice-name-large">Workout</div>
+                </div>
+                
+                <div class="practice-option" data-practice="wai" onclick="togglePractice('wai')">
+                    <div class="practice-icon-large">🧘</div>
+                    <div class="practice-name-large">جلسة وعي</div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-save" onclick="saveDay()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Goals Editor Modal -->
+    <div class="modal" id="goalsEditorModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Goals</h2>
+                <p>Update your weekly and business goals</p>
+            </div>
+            
+            <div style="padding: 20px;">
+                <h3 style="font-size: 1.1em; margin-bottom: 15px; color: #2d3748;">📿 Weekly Practice Goals</h3>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #2d3748;">
+                        Both I AM Target
+                    </label>
+                    <input type="number" min="0" max="7" id="edit-target-both-iam" 
+                           style="width: 100%; padding: 10px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1em;">
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #2d3748;">
+                        Juluus Target
+                    </label>
+                    <input type="number" min="0" max="7" id="edit-target-juluus" 
+                           style="width: 100%; padding: 10px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1em;">
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #2d3748;">
+                        Daftar Target
+                    </label>
+                    <input type="number" min="0" max="7" id="edit-target-daftar" 
+                           style="width: 100%; padding: 10px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1em;">
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-weight: 600; margin-bottom: 8px; color: #2d3748;">
+                        Workout Target
+                    </label>
+                    <input type="number" min="0" max="7" id="edit-target-workout" 
+                           style="width: 100%; padding: 10px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 1em;">
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeGoalsEditor()">Cancel</button>
+                <button class="btn btn-save" onclick="saveGoalsEditor()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        let practiceData = JSON.parse(localStorage.getItem('practiceData')) || {};
+        let manualGoals = JSON.parse(localStorage.getItem('manualGoals')) || {};
+        let goalTargets = JSON.parse(localStorage.getItem('goalTargets')) || {
+            'both-iam': 3,
+            'juluus': 2,
+            'daftar': 3,
+            'workout': 3
+        };
+        let currentDate = new Date();
+        let selectedDate = null;
+        let tempPractices = new Set();
+        let currentWeekOffset = 0;
+        const practices = ['morning', 'zikr', 'breath', 'salkh', 'juluus', 'night', 'daftar', 'workout', 'wai'];
+
+        // Module switching
+        document.querySelectorAll('.module-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const module = this.dataset.module;
+                
+                document.querySelectorAll('.module-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                document.querySelectorAll('.module-content').forEach(c => c.classList.remove('active'));
+                document.getElementById(module + '-module').classList.add('active');
+                
+                if (module === 'goals') {
+                    updateGoals();
+                }
+            });
+        });
+
+        function init() {
+            renderCalendar();
+            updateAllStreaks();
+            updateGoals();
+        }
+
+        function saveData() {
+            localStorage.setItem('practiceData', JSON.stringify(practiceData));
+            localStorage.setItem('manualGoals', JSON.stringify(manualGoals));
+            localStorage.setItem('goalTargets', JSON.stringify(goalTargets));
+        }
+
+        function calculateStreak(practice) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            let streak = 0;
+            let currentDay = new Date(today);
+            
+            // Check if today is done first (include in streak even before day ends if checked)
+            const todayKey = `${currentDay.getFullYear()}-${String(currentDay.getMonth() + 1).padStart(2, '0')}-${String(currentDay.getDate()).padStart(2, '0')}`;
+            const todayData = practiceData[todayKey];
+            
+            let todayDone = false;
+            if (practice === 'both-iam') {
+                todayDone = todayData && todayData.includes('morning') && todayData.includes('night');
+            } else {
+                todayDone = todayData && todayData.includes(practice);
+            }
+            
+            if (todayDone) {
+                streak = 1;
+            }
+            
+            // Now count backwards from yesterday
+            currentDay.setDate(currentDay.getDate() - 1);
+            
+            while (true) {
+                const dateKey = `${currentDay.getFullYear()}-${String(currentDay.getMonth() + 1).padStart(2, '0')}-${String(currentDay.getDate()).padStart(2, '0')}`;
+                const dayData = practiceData[dateKey];
+                
+                if (practice === 'both-iam') {
+                    if (dayData && dayData.includes('morning') && dayData.includes('night')) {
+                        streak++;
+                        currentDay.setDate(currentDay.getDate() - 1);
+                    } else {
+                        break;
+                    }
+                } else {
+                    if (dayData && dayData.includes(practice)) {
+                        streak++;
+                        currentDay.setDate(currentDay.getDate() - 1);
+                    } else {
+                        break;
+                    }
+                }
+            }
+            
+            return streak;
+        }
+
+        function updateAllStreaks() {
+            practices.forEach(practice => {
+                const streak = calculateStreak(practice);
+                document.getElementById(`streak-${practice}`).textContent = streak;
+            });
+            
+            const bothIamStreak = calculateStreak('both-iam');
+            document.getElementById('streak-both-iam').textContent = bothIamStreak;
+        }
+
+        function renderCalendar() {
+            const calendar = document.getElementById('calendar');
+            calendar.innerHTML = '';
+            
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+            document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
+            
+            const dayHeaders = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+            dayHeaders.forEach(day => {
+                const header = document.createElement('div');
+                header.className = 'day-header';
+                header.textContent = day;
+                calendar.appendChild(header);
+            });
+            
+            // Adjust firstDay to start from Monday (0=Mon, 6=Sun)
+            let firstDay = new Date(year, month, 1).getDay();
+            firstDay = firstDay === 0 ? 6 : firstDay - 1; // Convert Sunday=0 to Sunday=6, others shift down
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'day-cell other-month';
+                calendar.appendChild(emptyCell);
+            }
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayCell = document.createElement('div');
+                dayCell.className = 'day-cell';
+                
+                const cellDate = new Date(year, month, day);
+                cellDate.setHours(0, 0, 0, 0);
+                
+                if (cellDate.getTime() === today.getTime()) {
+                    dayCell.classList.add('today');
+                }
+                
+                const headerInfo = document.createElement('div');
+                headerInfo.className = 'day-header-info';
+                
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'day-number';
+                dayNumber.textContent = day;
+                
+                const dayOfWeek = document.createElement('div');
+                dayOfWeek.className = 'day-of-week';
+                const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                dayOfWeek.textContent = dayNames[cellDate.getDay()];
+                
+                headerInfo.appendChild(dayNumber);
+                headerInfo.appendChild(dayOfWeek);
+                dayCell.appendChild(headerInfo);
+
+                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayData = practiceData[dateKey];
+                
+                if (dayData && dayData.length > 0) {
+                    const practicesList = document.createElement('div');
+                    practicesList.className = 'practices-list-compact';
+                    
+                    const practiceNames = {
+                        'morning': '🌅 I AM Morning',
+                        'zikr': '📿 Zikr',
+                        'breath': '🌬️ Observing Breath',
+                        'salkh': '🕊️ سلخ',
+                        'juluus': '🌄 جلوس الصبح',
+                        'night': '🌙 I AM Night',
+                        'daftar': '📔 دفتر الانجازات',
+                        'workout': '💪 Workout',
+                        'wai': '🧘 جلسة وعي'
+                    };
+                    
+                    dayData.forEach(practice => {
+                        const dot = document.createElement('div');
+                        dot.className = `practice-dot ${practice}`;
+                        practicesList.appendChild(dot);
+                    });
+                    
+                    dayCell.appendChild(practicesList);
+                }
+
+                dayCell.onclick = () => openModal(year, month, day);
+                calendar.appendChild(dayCell);
+            }
+        }
+
+        function openModal(year, month, day) {
+            selectedDate = { year, month, day };
+            const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            
+            tempPractices = new Set(practiceData[dateKey] || []);
+            
+            const date = new Date(year, month, day);
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('modalDate').textContent = date.toLocaleDateString('en-US', options);
+            
+            practices.forEach(practice => {
+                const item = document.querySelector(`[data-practice="${practice}"]`);
+                if (tempPractices.has(practice)) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+            
+            document.getElementById('practiceModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('practiceModal').classList.remove('show');
+            tempPractices.clear();
+        }
+
+        function togglePractice(practice) {
+            const item = document.querySelector(`[data-practice="${practice}"]`);
+            
+            if (tempPractices.has(practice)) {
+                tempPractices.delete(practice);
+                item.classList.remove('selected');
+            } else {
+                tempPractices.add(practice);
+                item.classList.add('selected');
+            }
+        }
+
+        function saveDay() {
+            const { year, month, day } = selectedDate;
+            const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            
+            if (tempPractices.size > 0) {
+                practiceData[dateKey] = Array.from(tempPractices);
+            } else {
+                delete practiceData[dateKey];
+            }
+            
+            saveData();
+            renderCalendar();
+            updateAllStreaks();
+            updateGoals();
+            closeModal();
+        }
+
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        function goToToday() {
+            currentDate = new Date();
+            renderCalendar();
+        }
+
+        function getWeekRange(offset = 0) {
+            const now = new Date();
+            now.setDate(now.getDate() + (offset * 7));
+            const dayOfWeek = now.getDay();
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - dayOfWeek);
+            startOfWeek.setHours(0, 0, 0, 0);
+            
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            endOfWeek.setHours(23, 59, 59, 999);
+            
+            return { start: startOfWeek, end: endOfWeek };
+        }
+
+        function formatWeekRange(offset = 0) {
+            const { start, end } = getWeekRange(offset);
+            const options = { month: 'short', day: 'numeric' };
+            return `${start.toLocaleDateString('en-US', options)} - ${end.toLocaleDateString('en-US', options)}`;
+        }
+
+        function changeWeek(delta) {
+            currentWeekOffset += delta;
+            updateGoals();
+        }
+
+        function countWeeklyPractice(practice, offset = 0) {
+            const { start, end } = getWeekRange(offset);
+            let count = 0;
+            
+            const current = new Date(start);
+            while (current <= end) {
+                const dateKey = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}-${String(current.getDate()).padStart(2, '0')}`;
+                const dayData = practiceData[dateKey];
+                
+                if (practice === 'both-iam') {
+                    if (dayData && dayData.includes('morning') && dayData.includes('night')) {
+                        count++;
+                    }
+                } else {
+                    if (dayData && dayData.includes(practice)) {
+                        count++;
+                    }
+                }
+                
+                current.setDate(current.getDate() + 1);
+            }
+            
+            return count;
+        }
+
+        function updateGoals() {
+            const weekRange = formatWeekRange(currentWeekOffset);
+            document.getElementById('weekDisplay').textContent = weekRange;
+            
+            // Both I AM
+            const bothCount = countWeeklyPractice('both-iam', currentWeekOffset);
+            const bothGoal = goalTargets['both-iam'] || 3;
+            document.getElementById('desc-both-iam').textContent = `${bothCount} this week - Target: ${bothGoal}`;
+            document.getElementById('status-both-iam').textContent = `${bothCount}/${bothGoal}`;
+            const bothCard = document.getElementById('goal-both-iam');
+            const bothStatus = document.getElementById('status-both-iam');
+            if (bothCount >= bothGoal) {
+                bothCard.classList.add('completed');
+                bothStatus.classList.remove('pending');
+                bothStatus.classList.add('success');
+            } else {
+                bothCard.classList.remove('completed');
+                bothStatus.classList.remove('success');
+                bothStatus.classList.add('pending');
+            }
+            
+            // Juluus
+            const juluusCount = countWeeklyPractice('juluus', currentWeekOffset);
+            const juluusGoal = goalTargets['juluus'] || 2;
+            document.getElementById('desc-juluus').textContent = `${juluusCount} this week - Target: ${juluusGoal}`;
+            document.getElementById('status-juluus').textContent = `${juluusCount}/${juluusGoal}`;
+            const juluusCard = document.getElementById('goal-juluus');
+            const juluusStatus = document.getElementById('status-juluus');
+            if (juluusCount >= juluusGoal) {
+                juluusCard.classList.add('completed');
+                juluusStatus.classList.remove('pending');
+                juluusStatus.classList.add('success');
+            } else {
+                juluusCard.classList.remove('completed');
+                juluusStatus.classList.remove('success');
+                juluusStatus.classList.add('pending');
+            }
+            
+            // Daftar
+            const daftarCount = countWeeklyPractice('daftar', currentWeekOffset);
+            const daftarGoal = goalTargets['daftar'] || 3;
+            document.getElementById('desc-daftar').textContent = `${daftarCount} this week - Target: ${daftarGoal}`;
+            document.getElementById('status-daftar').textContent = `${daftarCount}/${daftarGoal}`;
+            const daftarCard = document.getElementById('goal-daftar');
+            const daftarStatus = document.getElementById('status-daftar');
+            if (daftarCount >= daftarGoal) {
+                daftarCard.classList.add('completed');
+                daftarStatus.classList.remove('pending');
+                daftarStatus.classList.add('success');
+            } else {
+                daftarCard.classList.remove('completed');
+                daftarStatus.classList.remove('success');
+                daftarStatus.classList.add('pending');
+            }
+            
+            // Workout
+            const workoutCount = countWeeklyPractice('workout', currentWeekOffset);
+            const workoutGoal = goalTargets['workout'] || 3;
+            document.getElementById('desc-workout').textContent = `${workoutCount} this week - Target: ${workoutGoal}`;
+            document.getElementById('status-workout').textContent = `${workoutCount}/${workoutGoal}`;
+            const workoutCard = document.getElementById('goal-workout');
+            const workoutStatus = document.getElementById('status-workout');
+            if (workoutCount >= workoutGoal) {
+                workoutCard.classList.add('completed');
+                workoutStatus.classList.remove('pending');
+                workoutStatus.classList.add('success');
+            } else {
+                workoutCard.classList.remove('completed');
+                workoutStatus.classList.remove('success');
+                workoutStatus.classList.add('pending');
+            }
+            
+            updateManualGoals();
+        }
+
+        function openGoalsEditor() {
+            const weekRange = formatWeekRange(currentWeekOffset);
+            const now = new Date();
+            const monthKey = `${now.getFullYear()}-${now.getMonth()}`;
+            
+            // Populate weekly practice targets
+            document.getElementById('edit-target-both-iam').value = goalTargets['both-iam'] || 3;
+            document.getElementById('edit-target-juluus').value = goalTargets['juluus'] || 2;
+            document.getElementById('edit-target-daftar').value = goalTargets['daftar'] || 3;
+            document.getElementById('edit-target-workout').value = goalTargets['workout'] || 3;
+            
+            // Populate business goals
+            const marketKey = `market-${weekRange}`;
+            document.getElementById('edit-check-market').checked = manualGoals[marketKey] || false;
+            
+            const artMadeKey = `art-made-${monthKey}`;
+            const artMadeValue = manualGoals[artMadeKey] || 0;
+            document.getElementById('edit-input-art-made').value = artMadeValue;
+            document.getElementById('edit-check-art-made').checked = artMadeValue >= 1;
+            
+            const artSoldKey = `art-sold-${monthKey}`;
+            const artSoldValue = manualGoals[artSoldKey] || 0;
+            document.getElementById('edit-input-art-sold').value = artSoldValue;
+            document.getElementById('edit-check-art-sold').checked = artSoldValue >= 1;
+            
+            document.getElementById('goalsEditorModal').classList.add('show');
+        }
+
+        function closeGoalsEditor() {
+            document.getElementById('goalsEditorModal').classList.remove('show');
+        }
+
+        function updateEditorPreview() {
+            // Preview functionality if needed
+        }
+
+        function saveGoalsEditor() {
+            const weekRange = formatWeekRange(currentWeekOffset);
+            const now = new Date();
+            const monthKey = `${now.getFullYear()}-${now.getMonth()}`;
+            
+            // Save weekly practice targets
+            goalTargets['both-iam'] = parseInt(document.getElementById('edit-target-both-iam').value) || 3;
+            goalTargets['juluus'] = parseInt(document.getElementById('edit-target-juluus').value) || 2;
+            goalTargets['daftar'] = parseInt(document.getElementById('edit-target-daftar').value) || 3;
+            goalTargets['workout'] = parseInt(document.getElementById('edit-target-workout').value) || 3;
+            
+            // Save business goals
+            const marketKey = `market-${weekRange}`;
+            const marketChecked = document.getElementById('edit-check-market').checked;
+            if (marketChecked) {
+                manualGoals[marketKey] = true;
+            } else {
+                delete manualGoals[marketKey];
+            }
+            
+            const artMadeKey = `art-made-${monthKey}`;
+            const artMadeValue = parseInt(document.getElementById('edit-input-art-made').value) || 0;
+            manualGoals[artMadeKey] = artMadeValue;
+            
+            const artSoldKey = `art-sold-${monthKey}`;
+            const artSoldValue = parseInt(document.getElementById('edit-input-art-sold').value) || 0;
+            manualGoals[artSoldKey] = artSoldValue;
+            
+            saveData();
+            updateGoals();
+            closeGoalsEditor();
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify({ practiceData, manualGoals }, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `spiritual-tracker-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.practiceData) practiceData = data.practiceData;
+                    if (data.manualGoals) manualGoals = data.manualGoals;
+                    saveData();
+                    renderCalendar();
+                    updateAllStreaks();
+                    updateGoals();
+                    alert('Data imported successfully!');
+                } catch (error) {
+                    alert('Error importing data. Please check the file format.');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        document.getElementById('practiceModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        document.getElementById('goalsEditorModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeGoalsEditor();
+            }
+        });
+
+        window.onload = init;
+    </script>
+</body>
+</html>
